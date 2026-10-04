@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>管理画面 - 平成会勝ち馬投票システム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="app-header">
+    <div class="emoji">🛠️</div>
+    <div>
+      <h1>管理画面</h1>
+      <p>平成会勝ち馬投票システム</p>
+    </div>
+  </div>
+
+  <!-- パスワード認証 -->
+  <div id="screen-login" class="screen active">
+    <div class="card login-box">
+      <h2 style="justify-content:center;">🔒 管理者パスワード</h2>
+      <input type="text" id="passwordInput" placeholder="パスワードを入力" autocomplete="off" inputmode="numeric">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="loginBtn">ログイン</button>
+      </div>
+      <p class="note center">※このパスワードは画面の表示制御のみを目的としたものです。投票データの書き込み自体はFirestoreセキュリティルールで保護されています。</p>
+    </div>
+  </div>
+
+  <!-- 管理画面本体 -->
+  <div id="screen-admin" class="screen">
+
+    <div class="card">
+      <h2>📊 全体集計</h2>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="v" id="totalVoters">0</div><div class="l">投票者数</div></div>
+        <div class="stat-box"><div class="v" id="totalCount">0</div><div class="l">全体の投票口数</div></div>
+        <div class="stat-box"><div class="v" id="totalAmount">¥0</div><div class="l">全体の投票金額</div></div>
+        <div class="stat-box"><div class="v" id="totalCombos">0</div><div class="l">買われている組合せ数</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline btn-sm" id="downloadCsvBtn">⬇ CSVダウンロード</button>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn">ログアウト</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ 投票データの全削除</h2>
+      <p class="note">すべての投票データを完全に削除します。元に戻せません。新しいコンペを始める前など、本当に必要な時だけ使ってください。</p>
+      <div class="btn-row">
+        <button class="btn btn-danger btn-sm" id="resetAllBtn">🗑 投票データを全削除する</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🥇 着順別の人気集計</h2>
+      <div class="pos-tally" id="posTally"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 各3連単組み合わせの投票数</h2>
+      <div id="comboTally"></div>
+    </div>
+
+    <div class="card">
+      <h2>🧑‍🤝‍🧑 投票者一覧</h2>
+      <div style="overflow-x:auto;">
+        <table class="admin-table" id="votersTable">
+          <thead>
+            <tr>
+              <th>投票日時</th>
+              <th>投票者名</th>
+              <th>買い目</th>
+              <th class="num">口数</th>
+              <th class="num">金額</th>
+            </tr>
+          </thead>
+          <tbody id="votersTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK (compat版) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
