@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>平成会勝ち馬投票システム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="app-header">
+    <div class="emoji">🏇</div>
+    <div>
+      <h1>平成会勝ち馬投票システム</h1>
+      <p>3連単投票（1口250円）</p>
+    </div>
+  </div>
+
+  <!-- 読み込み中 -->
+  <div id="screen-loading" class="screen active">
+    <div class="card center">
+      <div class="note">読み込み中です…</div>
+    </div>
+  </div>
+
+  <!-- ① 名前入力 -->
+  <div id="screen-name" class="screen">
+    <div class="card center">
+      <div style="font-size:40px;margin-bottom:8px;">🏇</div>
+      <h2 style="justify-content:center;">お名前を入力してください</h2>
+      <input type="text" id="nameInput" placeholder="例: 山田太郎" maxlength="20" autocomplete="off">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="nameSubmitBtn">投票画面へ進む</button>
+      </div>
+      <div class="note">同じお名前での投票は1回までです。</div>
+    </div>
+  </div>
+
+  <!-- 既に投票済み -->
+  <div id="screen-already" class="screen">
+    <div class="card center">
+      <div style="font-size:40px;margin-bottom:8px;">✅</div>
+      <h2 style="justify-content:center;">投票済みです</h2>
+      <p class="note"><b id="alreadyName"></b> さんは、すでに投票済みです。1人1回までとなっております。</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="showMyVoteFromAlreadyBtn">自分の投票内容を見る</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" id="backToNameFromAlreadyBtn">別の名前で入力し直す</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 投票（買い目選択） -->
+  <div id="screen-vote" class="screen">
+    <div class="card">
+      <h2>🎫 買い目を選ぶ</h2>
+      <div class="pick-grid">
+        <div class="pick-field">
+          <div class="badge"><span class="dot p1">1</span>1着</div>
+          <select id="selFirst"></select>
+        </div>
+        <div class="pick-field">
+          <div class="badge"><span class="dot p2">2</span>2着</div>
+          <select id="selSecond"></select>
+        </div>
+        <div class="pick-field">
+          <div class="badge"><span class="dot p3">3</span>3着</div>
+          <select id="selThird"></select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="addPickBtn">＋ 買い目を追加</button>
+      </div>
+      <div class="note">1着・2着・3着に同じ馬（人）は選べません。</div>
+    </div>
+
+    <div class="card">
+      <h2>📋 現在の買い目</h2>
+      <div id="pickListWrap">
+        <div class="empty">まだ買い目がありません</div>
+      </div>
+      <div class="summary-box">
+        <span><b id="pickCount">0</b>口</span>
+        <span>合計 <b id="pickTotal">¥0</b></span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toConfirmBtn" disabled>投票内容を確認</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 確認画面 -->
+  <div id="screen-confirm" class="screen">
+    <div class="card">
+      <h2>🔍 投票内容の確認</h2>
+      <p class="note">お名前: <b id="confirmName"></b></p>
+      <div class="confirm-list" id="confirmList"></div>
+      <div class="confirm-total">
+        <span>合計金額</span>
+        <span class="amount" id="confirmTotal">¥0</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="confirmSubmitBtn">投票を確定する</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="confirmBackBtn">買い目を修正する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 完了画面 -->
+  <div id="screen-done" class="screen">
+    <div class="card center">
+      <div class="done-icon">🎉</div>
+      <div class="done-title">投票が完了しました！</div>
+      <p class="note">ご投票ありがとうございました。</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="showMyVoteBtn">自分の投票内容を見る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ マイページ（自分の投票内容） -->
+  <div id="screen-mypage" class="screen">
+    <div class="card">
+      <h2>🧾 <span id="myPageName"></span> さんの投票内容</h2>
+      <div id="myVoteList"></div>
+      <div class="summary-box">
+        <span><b id="myVoteCount">0</b>口</span>
+        <span>合計 <b id="myVoteTotal">¥0</b></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK (compat版) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

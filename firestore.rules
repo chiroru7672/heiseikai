@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// =========================================================
+// 平成会勝ち馬投票システム - Firestore セキュリティルール
+// =========================================================
+// 方針:
+//  - votes コレクションは「誰でも読める（集計表示のため）」
+//  - 新規作成（投票）は「匿名認証済みであること」かつ
+//    「同じドキュメントID("正規化した名前")がまだ存在しないこと」を条件に許可
+//    → これにより「1人（1つの名前）につき1回だけ投票できる」を実現しています
+//  - 更新・削除は一切禁止（誰も投票内容を後から書き換えられない）
+//
+// 注意（重要）:
+//  この仕組みは「同じ名前を名乗れば技術的には1回だけ」という制御であり、
+//  なりすまし（他人の名前で先に投票する）や、名前の表記ゆれ
+//  （全角/半角、スペースの有無など）までは防げません。
+//  身内のゴルフコンペ等、性善説で運用できる場面を想定した設計です。
+// =========================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /votes/{voterId} {
+      // 誰でも閲覧可能（投票ページ・管理画面どちらも読み取りが必要なため）
+      allow read: if true;
+
+      // 新規作成のみ許可。以下すべてを満たす場合に限る:
+      //  1. 匿名認証を含め、何らかの形でサインイン済みであること
+      //  2. 同じIDのドキュメントがまだ存在しないこと（＝初回の投票であること）
+      //  3. 送信されたデータの形式が正しいこと
+      allow create: if request.auth != null
+                    && !exists(/databases/$(database)/documents/votes/$(voterId))
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.picks is list
+                    && request.resource.data.picks.size() > 0
+                    && request.resource.data.count == request.resource.data.picks.size()
+                    && request.resource.data.totalAmount == request.resource.data.picks.size() * 250;
+
+      // 一度書き込まれた投票データは、更新・削除できません
+      allow update, delete: if false;
+    }
+
+    // 上記以外のコレクションへのアクセスはすべて拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
